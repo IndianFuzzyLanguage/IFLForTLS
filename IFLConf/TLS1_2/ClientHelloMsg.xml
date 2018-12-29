@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Msg id="1" name="ClientHello">
+    <Field id="1" name="record_type" type="V" size="1">
+        <ValueType>int</ValueType>
+        <DefaultValue>22</DefaultValue>
+    </Field>
+    <Field id="2" name="version" type="V" size="2">
+        <ValueType>hex</ValueType>
+        <DefaultValue>303</DefaultValue>
+    </Field>
+    <Field id="3" name="record_len_and_payload" type="LV">
+        <LengthField>
+            <Field id="4" name="record_length" type="V" size="2"/>
+        </LengthField>
+        <ValueField>
+            <Field id="5" name="handshake_type" type="V" size="1">
+                <ValueType>int</ValueType>
+                <DefaultValue>1</DefaultValue>
+            </Field>
+            <Field id="6" name="handshake_len_and_payload" type="LV">
+                <LengthField>
+                    <Field id="7" name="handshake_len" type="V" size="3"/>
+                </LengthField>
+                <ValueField>
+                    <Field id="8" name="version" type="V" size="2">
+                        <ValueType>hex</ValueType>
+                        <DefaultValue>303</DefaultValue>
+                    </Field>
+                </ValueField>
+            </Field>
+        </ValueField>
+    </Field>
+</Msg>
