@@ -14,7 +14,7 @@ RM = rm
 IFL_DIR=../IFL
 
 CFLAGS = -g -ggdb -O0 -Wall -Werror
-LFLAGS = -L $(IFL_DIR)/bin -lifl
+LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat
 
 INC = -I ./src -I $(IFL_DIR)/include
 CFLAGS += $(INC)

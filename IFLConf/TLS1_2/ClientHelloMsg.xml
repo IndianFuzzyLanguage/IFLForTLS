@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Msg id="1" name="ClientHello">
+<Msg id="1" name="ClientHello" format_version="1">
     <Field id="1" name="record_type" type="V" size="1">
         <ValueType>int</ValueType>
         <DefaultValue>22</DefaultValue>
@@ -13,11 +13,13 @@
             <Field id="4" name="record_length" type="V" size="2"/>
         </LengthField>
         <ValueField>
-            <Field id="5" name="handshake_type" type="V" size="1">
-                <ValueType>int</ValueType>
-                <DefaultValue>1</DefaultValue>
-            </Field>
-            <Field id="6" name="handshake_len_and_payload" type="LV">
+            <Field id="5" name="handshake_type_len_field" type="TLV">
+                <TagField>
+                    <Field id="6" name="handshake_type" type="V" size="1">
+                        <ValueType>int</ValueType>
+                        <DefaultValue>1</DefaultValue>
+                    </Field>
+                </TagField>
                 <LengthField>
                     <Field id="7" name="handshake_len" type="V" size="3"/>
                 </LengthField>

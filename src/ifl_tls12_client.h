@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define IFL_CONF_CLIENT_HELLO_MSG "../IFLConf/TLS1_2/ClientHelloMsg.xml"
+#define IFL_CONF_CLIENT_HELLO_MSG "IFLConf/TLS1_2/ClientHelloMsg.xml"
 
 #ifdef __cplusplus
 }
