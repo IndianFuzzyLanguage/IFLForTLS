@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Field id="1" name="ClientHelloMsg" format_version="1">
-    <Field id="1" name="record_type" type="V" size="1">
+    <Field id="2" name="record_type" type="V" size="1">
         <ValueType>uint</ValueType>
         <DefaultValue>22</DefaultValue>
     </Field>
-    <Field id="2" name="version" type="V" size="2">
+    <Field id="3" name="version" type="V" size="2">
         <ValueType>hex</ValueType>
         <DefaultValue>303</DefaultValue>
     </Field>
-    <Field id="3" name="record_len_payload" type="LV">
+    <Field id="4" name="record_len_payload" type="LV">
         <LengthField>
-            <Field id="4" name="record_length" type="V" size="2"/>
+            <Field id="5" name="record_length" type="V" size="2"/>
         </LengthField>
         <ValueField>
-            <Field id="5" name="record_payload" type="TLV">
+            <Field id="6" name="record_payload" type="TLV">
                 <TagField>
-                    <Field id="6" name="handshake_type" type="V" size="1">
+                    <Field id="7" name="handshake_type" type="V" size="1">
                         <ValueType>uint</ValueType>
                         <DefaultValue>1</DefaultValue>
                     </Field>
                 </TagField>
                 <LengthField>
-                    <Field id="7" name="handshake_len" type="V" size="3"/>
+                    <Field id="8" name="handshake_len" type="V" size="3"/>
                 </LengthField>
                 <ValueField>
-                    <Field id="8" name="version" type="V" size="2">
+                    <Field id="9" name="version" type="V" size="2">
                         <ValueType>hex</ValueType>
                         <DefaultValue>303</DefaultValue>
                     </Field>
