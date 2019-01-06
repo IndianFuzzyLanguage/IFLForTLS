@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "ifl.h"
-#include "ifl_tls12_client.h"
+#include "ifl_t12client.h"
 
 #define IFL_LOG_FILE "./ifl_log.txt"
 
