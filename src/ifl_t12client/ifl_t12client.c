@@ -43,7 +43,7 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
         goto err_handler;
     }
 
-    printf("TLS connection succeeded, fd=%d\n", fd);
+    printf("TCP connection succeeded, fd=%d\n", fd);
     return fd;
 err_handler:
     close(fd);
@@ -93,7 +93,6 @@ int start_ifl()
             printf("TCP connect failed\n");
             return -1;
         }
-        printf("TCP Connection succeeded, fd=%d\n", fd);
         if (IFL_GetFuzzedMsg(ifl, &fuzzed_msg, &fuzzed_msg_len)) {
             printf("Get Fuzzed msg failed\n");
             goto err;
@@ -105,7 +104,7 @@ int start_ifl()
             if (send(fd, fuzzed_msg, (int)fuzzed_msg_len, 0) != fuzzed_msg_len) {
                 printf("TCP send on fd=%d failed\n", fd);
             }
-            printf("TCP send len=%d on fd=%d\n", fuzzed_msg_len, fd);
+            printf("TCP send %d bytes data on fd=%d\n", fuzzed_msg_len, fd);
             IFL_FreeFuzzedMsg(fuzzed_msg);
         }
     } while(1);
