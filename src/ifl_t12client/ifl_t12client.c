@@ -76,7 +76,7 @@ int start_ifl()
     int ret_val = -1;
     int fd;
     uint8_t *fuzzed_msg;
-    uint16_t fuzzed_msg_len;
+    uint32_t fuzzed_msg_len;
 
     ifl_log_init();
     ifl = IFL_Init(IFL_CONF_CLIENT_HELLO_MSG, NULL);
