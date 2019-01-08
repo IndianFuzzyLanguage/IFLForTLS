@@ -17,6 +17,14 @@
 
 FILE* g_ifl_log = NULL;
 
+void print_bin(uint8_t *buf, uint16_t buf_size, const char *type)
+{
+    int i;
+    printf("%s[%d]:", type, buf_size);
+    for (i = 0; i < buf_size; i++) printf(" %x", buf[i]);
+    printf("\n");
+}
+
 int do_tcp_connection(const char *server_ip, uint16_t port)
 {
     struct sockaddr_in serv_addr;
@@ -101,6 +109,7 @@ int start_ifl()
             printf("Fuzzed msg generation finished\n");
             break;
         } else {
+            print_bin(fuzzed_msg, fuzzed_msg_len, "FuzzMsg");
             if (send(fd, fuzzed_msg, (int)fuzzed_msg_len, 0) != fuzzed_msg_len) {
                 printf("TCP send on fd=%d failed\n", fd);
             }
