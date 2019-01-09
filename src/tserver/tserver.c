@@ -8,6 +8,7 @@
 
 #include "openssl/crypto.h"
 #include "openssl/ssl.h"
+#include "openssl/err.h"
 
 #include "iflfortls.h"
 #include "iflfortls_common.h"
@@ -141,6 +142,7 @@ int tls12_server()
 
     return 0;
 err_handler:
+    printf("ERR: %s\n", ERR_func_error_string(ERR_get_error()));
     if (ssl) {
         SSL_free(ssl);
     }
