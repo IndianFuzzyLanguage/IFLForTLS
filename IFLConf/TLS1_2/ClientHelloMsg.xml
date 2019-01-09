@@ -6,7 +6,7 @@
     </Field>
     <Field id="3" name="version" type="V" size="2">
         <ValueType>hex</ValueType>
-        <DefaultValue>303</DefaultValue>
+        <DefaultValue>0303</DefaultValue>
     </Field>
     <Field id="4" name="record_len_payload" type="LV">
         <LengthField>
@@ -26,7 +26,7 @@
                 <ValueField>
                     <Field id="9" name="version" type="V" size="2">
                         <ValueType>hex</ValueType>
-                        <DefaultValue>303</DefaultValue>
+                        <DefaultValue>0303</DefaultValue>
                     </Field>
                 </ValueField>
             </Field>
