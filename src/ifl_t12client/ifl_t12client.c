@@ -4,13 +4,10 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <errno.h>
 
 #include "ifl.h"
 #include "iflfortls.h"
+#include "iflfortls_common.h"
 #include "ifl_t12client.h"
 
 #define IFL_LOG_FILE "./ifl_log.txt"
@@ -23,39 +20,6 @@ void print_bin(uint8_t *buf, uint16_t buf_size, const char *type)
     printf("%s[%d]:", type, buf_size);
     for (i = 0; i < buf_size; i++) printf(" %x", buf[i]);
     printf("\n");
-}
-
-int do_tcp_connection(const char *server_ip, uint16_t port)
-{
-    struct sockaddr_in serv_addr;
-    int fd;
-    int ret;
-
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
-        printf("Socket creation failed\n");
-        return -1;
-    }
-    printf("Client fd=%d created\n", fd);
-
-    serv_addr.sin_family = AF_INET;
-    if (inet_aton(server_ip, &serv_addr.sin_addr) == 0) {
-        printf("inet_aton failed\n");
-        goto err_handler;
-    }
-    serv_addr.sin_port = htons(port);
-
-    ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-    if (ret) {
-        printf("Connect failed, errno=%d\n", errno);
-        goto err_handler;
-    }
-
-    printf("TCP connection succeeded, fd=%d\n", fd);
-    return fd;
-err_handler:
-    close(fd);
-    return -1;
 }
 
 void ifl_log_cb(uint8_t log_level, const char *log_msg)
@@ -82,7 +46,7 @@ int start_ifl()
 {
     IFL *ifl = NULL;
     int ret_val = -1;
-    int fd;
+    int fd = -1;
     uint8_t *fuzzed_msg;
     uint32_t fuzzed_msg_len;
 
@@ -116,11 +80,13 @@ int start_ifl()
             printf("TCP send %d bytes data on fd=%d\n", fuzzed_msg_len, fd);
             IFL_FreeFuzzedMsg(fuzzed_msg);
         }
+        CLOSE_FD(fd);
     } while(1);
     ret_val = 0;
 err:
     IFL_Fini(ifl);
     ifl_log_fini();
+    CLOSE_FD(fd);
     return ret_val;
 }
 
