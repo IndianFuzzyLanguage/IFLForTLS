@@ -13,6 +13,9 @@ extern "C" {
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 7788
 
+#define TCP_CONNECT_MAX_RETRY   10
+#define TCP_RECONNECT_SLEEP_TIME_MS 500
+
 #ifdef __cplusplus
 }
 #endif

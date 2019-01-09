@@ -3,72 +3,14 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <errno.h>
+
 
 #include "openssl/crypto.h"
 #include "openssl/ssl.h"
 
 #include "iflfortls.h"
-
-#if 0
-#define SERVER_CERT_FILE "./certs/ECC_Prime256_Certs/serv_cert.pem"
-#define SERVER_KEY_FILE "./certs/ECC_Prime256_Certs/serv_key.der"
-#define EC_CURVE_NAME NID_X9_62_prime256v1
-
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 7788
-#endif
-
-int do_tcp_accept(const char *server_ip, uint16_t port)
-{
-    struct sockaddr_in addr;
-    struct sockaddr_in peeraddr;
-    socklen_t peerlen = sizeof(peeraddr);
-    int lfd, cfd;
-    int ret;
-
-    lfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (lfd < 0) {
-        printf("Socket creation failed\n");
-        return -1;
-    }
-
-    addr.sin_family = AF_INET;
-    if (inet_aton(server_ip, &addr.sin_addr) == 0) {
-        printf("inet_aton failed\n");
-        goto err_handler;
-    }
-    addr.sin_port = htons(port);
-
-    ret = bind(lfd, (struct sockaddr *)&addr, sizeof(addr));
-    if (ret) {
-        printf("bind failed\n");
-        goto err_handler;
-    }
-
-    ret = listen(lfd, 5);
-    if (ret) {
-        printf("listen failed\n");
-        goto err_handler;
-    }
-
-    printf("Waiting for TCP connection from client...\n");
-    cfd = accept(lfd, (struct sockaddr *)&peeraddr, &peerlen);
-    if (cfd < 0) {
-        printf("accept failed, errno=%d\n", errno);
-        goto err_handler;
-    }
-
-    printf("TCP connection accepted fd=%d\n", cfd);
-    close(lfd);
-    return cfd;
-err_handler:
-    close(lfd);
-    return -1;
-}
+#include "iflfortls_common.h"
 
 SSL_CTX *create_context()
 {
@@ -195,7 +137,7 @@ int tls12_server()
     printf("SSL accept succeeded\n");
     SSL_free(ssl);
     SSL_CTX_free(ctx);
-    close(fd);
+    CLOSE_FD(fd);
 
     return 0;
 err_handler:
@@ -203,7 +145,7 @@ err_handler:
         SSL_free(ssl);
     }
     SSL_CTX_free(ctx);
-    close(fd);
+    CLOSE_FD(fd);
     return -1;
 }
 
