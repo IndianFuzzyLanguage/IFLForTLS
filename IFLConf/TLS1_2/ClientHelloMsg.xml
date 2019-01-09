@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Field id="1" name="ClientHelloMsg" format_version="1">
+<Field id="1" name="ClientHelloMsg" format_version="1" type="S">
     <Field id="2" name="record_type" type="V" size="1">
         <ValueType>uint</ValueType>
         <DefaultValue>22</DefaultValue>
