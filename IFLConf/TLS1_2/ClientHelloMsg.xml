@@ -9,27 +9,20 @@
         <DefaultValue>0303</DefaultValue>
     </Field>
     <Field id="4" name="record_len_payload" type="LV">
-        <LengthField>
-            <Field id="5" name="record_length" type="V" size="2"/>
-        </LengthField>
-        <ValueField>
-            <Field id="6" name="record_payload" type="TLV">
-                <TagField>
-                    <Field id="7" name="handshake_type" type="V" size="1">
-                        <ValueType>uint</ValueType>
-                        <DefaultValue>1</DefaultValue>
-                    </Field>
-                </TagField>
-                <LengthField>
-                    <Field id="8" name="handshake_len" type="V" size="3"/>
-                </LengthField>
-                <ValueField>
-                    <Field id="9" name="version" type="V" size="2">
-                        <ValueType>hex</ValueType>
-                        <DefaultValue>0303</DefaultValue>
-                    </Field>
-                </ValueField>
+        <Field id="5" name="record_length" type="V" size="2"/>
+        <Field id="6" name="record_payload" type="TLV">
+            <Field id="7" name="handshake_type" type="V" size="1">
+                <ValueType>uint</ValueType>
+                <DefaultValue>1</DefaultValue>
             </Field>
-        </ValueField>
+            <Field id="8" name="handshake_len" type="V" size="3"/>
+            <Field id="9" name="handshake_pay" type="S">
+                <Field id="10" name="version" type="V" size="2">
+                    <ValueType>hex</ValueType>
+                    <DefaultValue>0303</DefaultValue>
+                </Field>
+                <Field id="11" name="clnt_random" type="V" size="32"/>
+            </Field>
+        </Field>
     </Field>
 </Field>
