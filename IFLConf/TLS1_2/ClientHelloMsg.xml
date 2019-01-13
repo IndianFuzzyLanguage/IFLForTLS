@@ -17,7 +17,7 @@
             </Field>
             <Field id="8" name="handshake_len" type="V" size="3"/>
             <Field id="9" name="handshake_pay" type="S">
-                <Field id="10" name="version" type="V" size="2">
+                <Field id="10" name="handshake_version" type="V" size="2">
                     <ValueType>hex</ValueType>
                     <DefaultValue>0303</DefaultValue>
                 </Field>
