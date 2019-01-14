@@ -16,7 +16,9 @@ extern "C" {
         } \
     } while(0)
 
-int do_tcp_accept(const char *server_ip, uint16_t port);
+int do_tcp_listen(const char *server_ip, uint16_t port);
+
+int do_tcp_accept(int lfd);
 
 int do_tcp_connection(const char *server_ip, uint16_t port);
 

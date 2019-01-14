@@ -48,13 +48,13 @@ err_handler:
     return NULL;
 }
 
-SSL *create_ssl_object(SSL_CTX *ctx)
+SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
 {
     SSL *ssl;
     EC_KEY *ecdh;
     int fd;
 
-    fd = do_tcp_accept(SERVER_IP, SERVER_PORT);
+    fd = do_tcp_accept(lfd);
     if (fd < 0) {
         printf("TCP connection establishment failed\n");
         return NULL;
@@ -88,9 +88,8 @@ err_handler:
 
 #define MAX_MKEY_SIZE 2048
 
-int tls12_server()
+int do_tls_connection(SSL_CTX *ctx, int lfd)
 {
-    SSL_CTX *ctx;
     SSL *ssl = NULL;
     SSL_SESSION *ssl_session;
     int fd;
@@ -99,12 +98,7 @@ int tls12_server()
     size_t mkey_size;
     int i;
 
-    ctx = create_context();
-    if (!ctx) {
-        return -1;
-    }
-
-    ssl = create_ssl_object(ctx);
+    ssl = create_ssl_object(ctx, lfd);
     if (!ssl) {
         goto err_handler;
     }
@@ -137,7 +131,6 @@ int tls12_server()
 
     printf("SSL accept succeeded\n");
     SSL_free(ssl);
-    SSL_CTX_free(ctx);
     CLOSE_FD(fd);
 
     return 0;
@@ -146,14 +139,45 @@ err_handler:
     if (ssl) {
         SSL_free(ssl);
     }
-    SSL_CTX_free(ctx);
     CLOSE_FD(fd);
+    return -1;
+}
+
+int tls12_server()
+{
+    SSL_CTX *ctx;
+    int lfd;
+
+    ctx = create_context();
+    if (!ctx) {
+        return -1;
+    }
+
+    lfd = do_tcp_listen(SERVER_IP, SERVER_PORT);
+    if (lfd < 0) {
+        printf("TCP listen socket creation failed\n");
+        goto err;
+    }
+
+    do {
+        if (do_tls_connection(ctx, lfd)) {
+            printf("TLS connection failed\n\n\n");
+        } else {
+            printf("TLS connection SUCCEEDED\n\n\n");
+        }
+    } while(1);
+
+    CLOSE_FD(lfd);
+    SSL_CTX_free(ctx);
+    return 0;
+err:
+    CLOSE_FD(lfd);
     return -1;
 }
 
 int main()
 {
-    printf("OpenSSL version: %s, %s\n", OpenSSL_version(OPENSSL_VERSION), OpenSSL_version(OPENSSL_BUILT_ON));
+    printf("\nOpenSSL version: %s, %s\n", OpenSSL_version(OPENSSL_VERSION), OpenSSL_version(OPENSSL_BUILT_ON));
     if (tls12_server()) {
         printf("TLS12 server connection failed\n");
     }
