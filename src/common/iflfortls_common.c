@@ -12,12 +12,10 @@
 #include "iflfortls.h"
 #include "iflfortls_common.h"
 
-int do_tcp_accept(const char *server_ip, uint16_t port)
+int do_tcp_listen(const char *server_ip, uint16_t port)
 {
     struct sockaddr_in addr;
-    struct sockaddr_in peeraddr;
-    socklen_t peerlen = sizeof(peeraddr);
-    int lfd, cfd;
+    int lfd;
     int ret;
 
     lfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,21 +42,29 @@ int do_tcp_accept(const char *server_ip, uint16_t port)
         printf("listen failed\n");
         goto err_handler;
     }
-
     printf("Listening on %s:%d\n", server_ip, port);
+    printf("TCP listen fd=%d\n", lfd);
+    return lfd;
+err_handler:
+    close(lfd);
+    return -1;
+}
+
+int do_tcp_accept(int lfd)
+{
+    struct sockaddr_in peeraddr;
+    socklen_t peerlen = sizeof(peeraddr);
+    int cfd;
+
     printf("Waiting for TCP connection from client...\n");
     cfd = accept(lfd, (struct sockaddr *)&peeraddr, &peerlen);
     if (cfd < 0) {
         printf("accept failed, errno=%d\n", errno);
-        goto err_handler;
+        return -1;
     }
 
     printf("TCP connection accepted fd=%d\n", cfd);
-    close(lfd);
     return cfd;
-err_handler:
-    close(lfd);
-    return -1;
 }
 
 int do_tcp_connection(const char *server_ip, uint16_t port)
@@ -66,6 +72,7 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
     struct sockaddr_in serv_addr;
     int fd;
     int ret;
+    int retry = 0;
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
@@ -82,7 +89,12 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
     serv_addr.sin_port = htons(port);
 
     printf("TCP connecting to %s:%d\n", server_ip, port);
-    ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    do {
+        ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        if (!ret) break;
+        retry++;
+        usleep(TCP_RECONNECT_SLEEP_TIME_MS * 1000);
+    } while(retry < TCP_CONNECT_MAX_RETRY);
     if (ret) {
         printf("Connect failed, ret=%d, errno=%d\n", ret, errno);
         goto err_handler;
