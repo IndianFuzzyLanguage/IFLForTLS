@@ -66,6 +66,7 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
     struct sockaddr_in serv_addr;
     int fd;
     int ret;
+    int retry = 0;
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
@@ -82,7 +83,12 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
     serv_addr.sin_port = htons(port);
 
     printf("TCP connecting to %s:%d\n", server_ip, port);
-    ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    do {
+        ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        if (!ret) break;
+        retry++;
+        usleep(TCP_RECONNECT_SLEEP_TIME_MS * 1000);
+    } while(retry < TCP_CONNECT_MAX_RETRY);
     if (ret) {
         printf("Connect failed, ret=%d, errno=%d\n", ret, errno);
         goto err_handler;
