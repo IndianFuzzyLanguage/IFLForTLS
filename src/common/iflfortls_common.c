@@ -11,6 +11,7 @@
 
 #include "iflfortls.h"
 #include "iflfortls_common.h"
+#include "iflfortls_log.h"
 
 int do_tcp_listen(const char *server_ip, uint16_t port)
 {
@@ -20,30 +21,30 @@ int do_tcp_listen(const char *server_ip, uint16_t port)
 
     lfd = socket(AF_INET, SOCK_STREAM, 0);
     if (lfd < 0) {
-        printf("Socket creation failed\n");
+        ERR("Socket creation failed\n");
         return -1;
     }
 
     addr.sin_family = AF_INET;
     if (inet_aton(server_ip, &addr.sin_addr) == 0) {
-        printf("inet_aton failed\n");
+        ERR("inet_aton failed\n");
         goto err_handler;
     }
     addr.sin_port = htons(port);
 
     ret = bind(lfd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret) {
-        printf("bind failed\n");
+        ERR("bind failed\n");
         goto err_handler;
     }
 
     ret = listen(lfd, 5);
     if (ret) {
-        printf("listen failed\n");
+        ERR("listen failed\n");
         goto err_handler;
     }
-    printf("Listening on %s:%d\n", server_ip, port);
-    printf("TCP listen fd=%d\n", lfd);
+    DBG("Listening on %s:%d\n", server_ip, port);
+    DBG("TCP listen fd=%d\n", lfd);
     return lfd;
 err_handler:
     close(lfd);
@@ -56,14 +57,14 @@ int do_tcp_accept(int lfd)
     socklen_t peerlen = sizeof(peeraddr);
     int cfd;
 
-    printf("Waiting for TCP connection from client...\n");
+    DBG("Waiting for TCP connection from client...\n");
     cfd = accept(lfd, (struct sockaddr *)&peeraddr, &peerlen);
     if (cfd < 0) {
-        printf("accept failed, errno=%d\n", errno);
+        ERR("accept failed, errno=%d\n", errno);
         return -1;
     }
 
-    printf("TCP connection accepted fd=%d\n", cfd);
+    DBG("TCP connection accepted fd=%d\n", cfd);
     return cfd;
 }
 
@@ -76,19 +77,19 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
-        printf("Socket creation failed\n");
+        ERR("Socket creation failed\n");
         return -1;
     }
-    printf("Client fd=%d created\n", fd);
+    DBG("Client fd=%d created\n", fd);
 
     serv_addr.sin_family = AF_INET;
     if (inet_aton(server_ip, &serv_addr.sin_addr) == 0) {
-        printf("inet_aton failed\n");
+        ERR("inet_aton failed\n");
         goto err_handler;
     }
     serv_addr.sin_port = htons(port);
 
-    printf("TCP connecting to %s:%d\n", server_ip, port);
+    DBG("TCP connecting to %s:%d\n", server_ip, port);
     do {
         ret = connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
         if (!ret) break;
@@ -96,11 +97,11 @@ int do_tcp_connection(const char *server_ip, uint16_t port)
         usleep(TCP_RECONNECT_SLEEP_TIME_MS * 1000);
     } while(retry < TCP_CONNECT_MAX_RETRY);
     if (ret) {
-        printf("Connect failed, ret=%d, errno=%d\n", ret, errno);
+        ERR("Connect failed, ret=%d, errno=%d\n", ret, errno);
         goto err_handler;
     }
 
-    printf("TCP connection succeeded, fd=%d\n", fd);
+    DBG("TCP connection succeeded, fd=%d\n", fd);
     return fd;
 err_handler:
     close(fd);
