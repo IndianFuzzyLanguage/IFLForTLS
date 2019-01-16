@@ -49,16 +49,6 @@ err:
     return NULL;
 }
 
-void log_bin(char *buf, int buf_len, const char *txt)
-{
-    int i;
-    printf("[%s]", txt);
-    for (i = 0; i < buf_len; i++) {
-        printf(" %x", buf[i] & 0xFF);
-    }
-    printf("\n");
-}
-
 int read_cb(BIO *bio, char *buf, int buf_len)
 {
     int fd = -1;
@@ -66,7 +56,7 @@ int read_cb(BIO *bio, char *buf, int buf_len)
     BIO_get_fd(bio, &fd);
     if (fd >= 0) {
         ret = recv(fd, buf, buf_len, 0);
-        log_bin(buf, ret, "READ_CB");
+        LOG_BIN((uint8_t *)buf, ret, "READ_CB");
         return ret;
     }
     DBG("read_cb: Invalid fd\n");

@@ -14,14 +14,6 @@
 
 FILE* g_ifl_log = NULL;
 
-void print_bin(uint8_t *buf, uint16_t buf_size, const char *type)
-{
-    int i;
-    printf("%s[%d]:", type, buf_size);
-    for (i = 0; i < buf_size; i++) printf(" %x", buf[i]);
-    printf("\n");
-}
-
 void ifl_log_cb(uint8_t log_level, const char *log_msg)
 {
     fwrite(log_msg, strlen(log_msg), 1, g_ifl_log);
@@ -73,7 +65,7 @@ int start_ifl()
             ERR("Fuzzed msg generation finished\n");
             break;
         } else {
-            print_bin(fuzzed_msg, fuzzed_msg_len, "FuzzMsg");
+            LOG_BIN(fuzzed_msg, fuzzed_msg_len, "FuzzMsg");
             if (send(fd, fuzzed_msg, (int)fuzzed_msg_len, 0) != fuzzed_msg_len) {
                 ERR("TCP send on fd=%d failed\n", fd);
             }
