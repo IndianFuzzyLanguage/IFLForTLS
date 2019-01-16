@@ -32,7 +32,7 @@ void ifl_log_init()
     IFL_SetLogCB(ifl_log_cb);
     g_ifl_log = fopen(IFL_LOG_FILE, "w");
     if (!g_ifl_log) {
-        printf("Log file open failed\n");
+        ERR("Log file open failed\n");
     }
 }
 
@@ -53,31 +53,31 @@ int start_ifl()
     ifl_log_init();
     ifl = IFL_Init(IFL_CONF_CLIENT_HELLO_MSG, NULL);
     if (!ifl) {
-        printf("IFL init failed\n");
+        ERR("IFL init failed\n");
         goto err;
     }
 
-    printf("IFL created successfully\n");
+    DBG("IFL created successfully\n");
 
     do {
         fd = do_tcp_connection(SERVER_IP, SERVER_PORT);
         if (fd == -1) {
-            printf("TCP connect failed\n");
+            ERR("TCP connect failed\n");
             return -1;
         }
         if (IFL_GetFuzzedMsg(ifl, &fuzzed_msg, &fuzzed_msg_len)) {
-            printf("Get Fuzzed msg failed\n");
+            ERR("Get Fuzzed msg failed\n");
             goto err;
         }
         if (!fuzzed_msg) {
-            printf("Fuzzed msg generation finished\n");
+            ERR("Fuzzed msg generation finished\n");
             break;
         } else {
             print_bin(fuzzed_msg, fuzzed_msg_len, "FuzzMsg");
             if (send(fd, fuzzed_msg, (int)fuzzed_msg_len, 0) != fuzzed_msg_len) {
-                printf("TCP send on fd=%d failed\n", fd);
+                ERR("TCP send on fd=%d failed\n", fd);
             }
-            printf("TCP send %d bytes data on fd=%d\n", fuzzed_msg_len, fd);
+            DBG("TCP send %d bytes data on fd=%d\n", fuzzed_msg_len, fd);
             IFL_FreeFuzzedMsg(fuzzed_msg);
         }
         CLOSE_FD(fd);
