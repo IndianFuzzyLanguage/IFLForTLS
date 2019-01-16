@@ -8,9 +8,10 @@ TSERVER_BIN=$(BIN_DIR)/$(TSERVER)
 TARGET=$(IFL_T12CLIENT_BIN) $(TSERVER_BIN)
 
 DEPENDENCY_DIR=dependency
-OPENSSL_1_1_1 = $(DEPENDENCY_DIR)/openssl-1.1.1a
-OPENSSL_1_0_2 = $(DEPENDENCY_DIR)/openssl-1.0.2q
-OPENSSL_1_1_1_LIBS=$(OPENSSL_1_1_1)/libssl.a
+OPENSSL_1_1_1=openssl-1.1.1a
+OPENSSL_1_1_1_DIR=$(DEPENDENCY_DIR)/$(OPENSSL_1_1_1)
+OPENSSL_1_0_2_DIR=$(DEPENDENCY_DIR)/openssl-1.0.2q
+OPENSSL_1_1_1_LIBS=$(OPENSSL_1_1_1_DIR)/libssl.a
 DEPENDENCY = $(OPENSSL_1_1_1_LIBS)
 
 COMMON_SRC_DIR=$(SRC_DIR)/common
@@ -35,8 +36,8 @@ CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR)
 IFL_T12CLIENT_CFLAGS = -I $(IFL_DIR)/include -I ./$(IFL_T12CLIENT_SRC_DIR)
 IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat
 
-OSSL_CFLAGS = -I $(OPENSSL_1_1_1)/include
-OSSL_LFLAGS = $(OPENSSL_1_1_1)/libssl.a $(OPENSSL_1_1_1)/libcrypto.a -lpthread -ldl
+OSSL_CFLAGS = -I $(OPENSSL_1_1_1_DIR)/include
+OSSL_LFLAGS = $(OPENSSL_1_1_1_DIR)/libssl.a $(OPENSSL_1_1_1_DIR)/libcrypto.a -lpthread -ldl
 
 .PHONY: all clean init_setup build_dependency
 
@@ -50,10 +51,10 @@ init_setup:
 
 build_dependency:$(DEPENDENCY)
 
-$(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1).tar.gz
-	tar -zxvf $(OPENSSL_1_1_1).tar.gz
-	cd $(OPENSSL_1_1_1) && ./config -d
-	cd $(OPENSSL_1_1_1) && make
+$(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1_DIR).tar.gz
+	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz
+	cd $(OPENSSL_1_1_1_DIR) && ./config -d
+	cd $(OPENSSL_1_1_1_DIR) && make
 
 $(OBJ_DIR)/$(COMMON_SRC_DIR)/%.o:$(COMMON_SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -o $@ -c $^
