@@ -52,20 +52,20 @@ int start_ifl()
     DBG("IFL created successfully\n");
 
     do {
-        fd = do_tcp_connection(SERVER_IP, SERVER_PORT);
-        if (fd == -1) {
-            ERR("TCP connect failed\n");
-            return -1;
-        }
         if (IFL_GetFuzzedMsg(ifl, &fuzzed_msg, &fuzzed_msg_len)) {
             ERR("Get Fuzzed msg failed\n");
             goto err;
         }
         if (!fuzzed_msg) {
-            ERR("Fuzzed msg generation finished\n");
+            DBG("Fuzzed msg generation finished\n");
             break;
         } else {
             LOG_BIN(fuzzed_msg, fuzzed_msg_len, "FuzzMsg");
+            fd = do_tcp_connection(SERVER_IP, SERVER_PORT);
+            if (fd == -1) {
+                ERR("TCP connect failed\n");
+                goto err;
+            }
             if (send(fd, fuzzed_msg, (int)fuzzed_msg_len, 0) != fuzzed_msg_len) {
                 ERR("TCP send on fd=%d failed\n", fd);
             }
