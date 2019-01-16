@@ -7,10 +7,12 @@ extern "C" {
 
 #include <unistd.h>
 
+#include "iflfortls_log.h"
+
 #define CLOSE_FD(fd) \
     do { \
         if (fd > -1) { \
-            printf("Closing fd=%d\n", fd); \
+            DBG("Closing fd=%d\n", fd); \
             close(fd); \
             fd = -1; \
         } \
