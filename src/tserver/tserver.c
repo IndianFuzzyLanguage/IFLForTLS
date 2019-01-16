@@ -27,14 +27,14 @@ SSL_CTX *create_context()
 
     if (SSL_CTX_use_certificate_file(ctx, SERVER_CERT_FILE, SSL_FILETYPE_PEM) != 1) {
         printf("Load Server cert %s failed\n", SERVER_CERT_FILE);
-        goto err_handler;
+        goto err;
     }
 
     printf("Loaded server cert %s on context\n", SERVER_CERT_FILE);
 
     if (SSL_CTX_use_PrivateKey_file(ctx, SERVER_KEY_FILE, SSL_FILETYPE_ASN1) != 1) {
         printf("Load Server key %s failed\n", SERVER_KEY_FILE);
-        goto err_handler;
+        goto err;
     }
 
     printf("Loaded server key %s on context\n", SERVER_KEY_FILE);
@@ -43,9 +43,65 @@ SSL_CTX *create_context()
     printf("SSL context configurations completed\n");
 
     return ctx;
-err_handler:
+err:
     SSL_CTX_free(ctx);
     return NULL;
+}
+
+void log_bin(char *buf, int buf_len, const char *txt)
+{
+    int i;
+    printf("[%s]", txt);
+    for (i = 0; i < buf_len; i++) {
+        printf(" %x", buf[i] & 0xFF);
+    }
+    printf("\n");
+}
+
+int read_cb(BIO *bio, char *buf, int buf_len)
+{
+    int fd = -1;
+    int ret;
+    BIO_get_fd(bio, &fd);
+    if (fd >= 0) {
+        ret = recv(fd, buf, buf_len, 0);
+        log_bin(buf, ret, "READ_CB");
+        return ret;
+    }
+    printf("read_cb: Invalid fd\n");
+    return -1;
+}
+
+int register_sock_cb(SSL *ssl, int fd)
+{
+    const BIO_METHOD *bmeth_orig;
+    BIO_METHOD *bmeth;
+    BIO *bio;
+    bmeth_orig = BIO_s_socket();
+    bmeth = BIO_meth_new(BIO_TYPE_SOCKET, "TCP_socket");
+    if (!bmeth_orig || !bmeth) {
+        printf("BIO meth creation failed\n");
+        return -1;
+    }
+    BIO_meth_set_write(bmeth, BIO_meth_get_write(bmeth_orig));
+    BIO_meth_set_read(bmeth, read_cb);
+    BIO_meth_set_ctrl(bmeth, BIO_meth_get_ctrl(bmeth_orig));
+    BIO_meth_set_create(bmeth, BIO_meth_get_create(bmeth_orig));
+    BIO_meth_set_puts(bmeth, BIO_meth_get_puts(bmeth_orig));
+    BIO_meth_set_destroy(bmeth, BIO_meth_get_destroy(bmeth_orig));
+
+    bio = BIO_new(bmeth);
+    if (!bio) {
+        printf("BIO new failed\n");
+        goto err;
+    }
+    BIO_set_fd(bio, fd, BIO_NOCLOSE);
+    SSL_set_bio(ssl, bio, bio);
+    printf("BIO callback set successfully\n");
+    return 0;
+err:
+    BIO_meth_free(bmeth);
+    return -1;
 }
 
 SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
@@ -67,11 +123,15 @@ SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
     }
 
     SSL_set_fd(ssl, fd);
+    if (register_sock_cb(ssl, fd)) {
+        printf("Registering sock cb failed\n");
+        goto err;
+    }
 
     ecdh = EC_KEY_new_by_curve_name(EC_CURVE_NAME);
     if (!ecdh) {
         printf("ECDH generation failed\n");
-        goto err_handler;
+        goto err;
     }
 
     SSL_set_tmp_ecdh(ssl, ecdh);
@@ -81,7 +141,7 @@ SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
     printf("SSL object creation finished\n");
 
     return ssl;
-err_handler:
+err:
     SSL_free(ssl);
     return NULL;
 }
@@ -100,7 +160,7 @@ int do_tls_connection(SSL_CTX *ctx, int lfd)
 
     ssl = create_ssl_object(ctx, lfd);
     if (!ssl) {
-        goto err_handler;
+        goto err;
     }
 
     fd = SSL_get_fd(ssl);
@@ -108,7 +168,7 @@ int do_tls_connection(SSL_CTX *ctx, int lfd)
     ret = SSL_accept(ssl); 
     if (ret != 1) {
         printf("SSL accept failed%d\n", ret);
-        goto err_handler;
+        goto err;
     }
 
     ssl_session = SSL_get_session(ssl);
@@ -119,7 +179,7 @@ int do_tls_connection(SSL_CTX *ctx, int lfd)
     }
     if (!mkey) {
         printf("Master buf not allocated\n");
-        goto err_handler;
+        goto err;
     }
     SSL_SESSION_get_master_key(ssl_session, mkey, mkey_size);
     for (i = 0; i < mkey_size; i++) {
@@ -134,7 +194,7 @@ int do_tls_connection(SSL_CTX *ctx, int lfd)
     CLOSE_FD(fd);
 
     return 0;
-err_handler:
+err:
     printf("ERR: %s\n", ERR_func_error_string(ERR_get_error()));
     if (ssl) {
         SSL_free(ssl);
