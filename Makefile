@@ -31,13 +31,19 @@ RM = rm
 
 IFL_DIR=../IFL
 
-CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR)
+ifeq ($(NOSAN),1)
+	SAN_CFLAGS=
+else
+	SAN_CFLAGS= -fsanitize=address -static-libasan
+endif
+
+CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR) $(SAN_CFLAGS) -fstack-protector-all
 
 IFL_T12CLIENT_CFLAGS = -I $(IFL_DIR)/include -I ./$(IFL_T12CLIENT_SRC_DIR)
-IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat
+IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat $(SAN_CFLAGS)
 
 OSSL_CFLAGS = -I $(OPENSSL_1_1_1_DIR)/include
-OSSL_LFLAGS = $(OPENSSL_1_1_1_DIR)/libssl.a $(OPENSSL_1_1_1_DIR)/libcrypto.a -lpthread -ldl
+OSSL_LFLAGS = $(OPENSSL_1_1_1_DIR)/libssl.a $(OPENSSL_1_1_1_DIR)/libcrypto.a -lpthread -ldl $(SAN_CFLAGS)
 
 .PHONY: all clean init_setup build_dependency
 
