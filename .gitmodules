@@ -1,0 +1,3 @@
+[submodule "dependency/IFL"]
+	path = dependency/IFL
+	url = https://github.com/IndianFuzzyLanguage/IFL
