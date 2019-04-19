@@ -17,6 +17,7 @@ FILE* g_ifl_log = NULL;
 void ifl_log_cb(uint8_t log_level, const char *log_msg)
 {
     fwrite(log_msg, strlen(log_msg), 1, g_ifl_log);
+    fflush(g_ifl_log);
 }
 
 void ifl_log_init()

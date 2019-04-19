@@ -8,11 +8,21 @@ TSERVER_BIN=$(BIN_DIR)/$(TSERVER)
 TARGET=$(IFL_T12CLIENT_BIN) $(TSERVER_BIN)
 
 DEPENDENCY_DIR=dependency
+
+ifeq ($(IFLPATH),)
+	IFL_DIR=$(DEPENDENCY_DIR)/IFL
+else
+	IFL_DIR=$(IFLPATH)
+endif
+
+IFL_LIBS=$(IFL_DIR)/bin/libifl.a
+
 OPENSSL_1_1_1=openssl-1.1.1a
 OPENSSL_1_1_1_DIR=$(DEPENDENCY_DIR)/$(OPENSSL_1_1_1)
 OPENSSL_1_0_2_DIR=$(DEPENDENCY_DIR)/openssl-1.0.2q
 OPENSSL_1_1_1_LIBS=$(OPENSSL_1_1_1_DIR)/libssl.a
-DEPENDENCY = $(OPENSSL_1_1_1_LIBS)
+
+DEPENDENCY = $(OPENSSL_1_1_1_LIBS) $(IFL_LIBS)
 
 COMMON_SRC_DIR=$(SRC_DIR)/common
 COMMON_SRCS=$(wildcard $(COMMON_SRC_DIR)/*.c)
@@ -29,15 +39,21 @@ CC = gcc
 AR = ar
 RM = rm
 
-IFL_DIR=../IFL
+ifeq ($(NOSAN),1)
+	SAN_CFLAGS=
+else
+	SAN_CFLAGS= -fsanitize=address -static-libasan
+endif
 
-CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR)
+SP_CFLAGS=-fstack-protector-all
+
+CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR) $(SAN_CFLAGS) $(SP_CFLAGS)
 
 IFL_T12CLIENT_CFLAGS = -I $(IFL_DIR)/include -I ./$(IFL_T12CLIENT_SRC_DIR)
-IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat
+IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat $(SAN_CFLAGS)
 
 OSSL_CFLAGS = -I $(OPENSSL_1_1_1_DIR)/include
-OSSL_LFLAGS = $(OPENSSL_1_1_1_DIR)/libssl.a $(OPENSSL_1_1_1_DIR)/libcrypto.a -lpthread -ldl
+OSSL_LFLAGS = $(OPENSSL_1_1_1_DIR)/libssl.a $(OPENSSL_1_1_1_DIR)/libcrypto.a -lpthread -ldl $(SAN_CFLAGS)
 
 .PHONY: all clean init_setup build_dependency
 
@@ -52,9 +68,12 @@ init_setup:
 build_dependency:$(DEPENDENCY)
 
 $(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1_DIR).tar.gz
-	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz
-	cd $(OPENSSL_1_1_1_DIR) && ./config -d
-	cd $(OPENSSL_1_1_1_DIR) && make
+	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz > /dev/null
+	export CC="gcc $(SAN_CFLAGS) $(SP_CFLAGS)" && cd $(OPENSSL_1_1_1_DIR) && ./config -d > /dev/null
+	cd $(OPENSSL_1_1_1_DIR) && make > /dev/null
+
+$(IFL_LIBS):
+	cd $(IFL_DIR) && make all
 
 $(OBJ_DIR)/$(COMMON_SRC_DIR)/%.o:$(COMMON_SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -o $@ -c $^
@@ -74,3 +93,7 @@ $(TSERVER_BIN): $(TSERVER_OBJS)
 clean:
 	@$(RM) -rf $(TARGET)
 	@$(RM) -rf $(OBJ_DIR) $(BIN_DIR)
+
+clobber:clean
+	cd $(OPENSSL_1_1_1_DIR) && make clean > /dev/null
+	cd $(IFL_DIR) && make clean

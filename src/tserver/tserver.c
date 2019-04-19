@@ -211,6 +211,8 @@ int main()
     DBG("\nOpenSSL version: %s, %s\n", OpenSSL_version(OPENSSL_VERSION), OpenSSL_version(OPENSSL_BUILT_ON));
     if (tls12_server()) {
         DBG("TLS12 server connection failed\n");
+        return -1;
     }
+    return 0;
 }
 
