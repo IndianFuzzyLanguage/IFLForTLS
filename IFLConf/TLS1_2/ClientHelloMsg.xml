@@ -22,6 +22,30 @@
                     <DefaultValue>0303</DefaultValue>
                 </Field>
                 <Field id="11" name="clnt_random" type="V" size="32"/>
+                <Field id="12" name="sess_id_len_and_val" type="LV">
+                    <Field id="13" name="sess_id_len" type="V" size="1"/>
+                    <!--<ValueType>uint</ValueType>
+                        <DefaultValue>32</DefaultValue>-->
+                    <Field id="14" name="sess_id" type="V" size="32"/>
+                </Field>
+                <Field id="15" name="cipher_suites_len_and_val" type="LV">
+                    <Field id="16" name="cipher_suites_len" type="V" size="2"/>
+                    <Field id="17" name="cipher_suites_arr" type="A">
+                        <Field id="18" name="cipher_suite" type="V" size="2">
+                            <ValueType>hex</ValueType>
+                            <DefaultValue>C02C</DefaultValue>
+                        </Field>
+                    </Field>
+                </Field>
+                <Field id="19" name="comp_len_and_val" type="LV">
+                    <Field id="20" name="comp_len" type="V" size="1"/>
+                    <Field id="21" name="comp_arr" type="A">
+                        <Field id="22" name="comp" type="V" size="1">
+                            <ValueType>uint</ValueType>
+                            <DefaultValue>0</DefaultValue>
+                        </Field>
+                    </Field>
+                </Field>
             </Field>
         </Field>
     </Field>
