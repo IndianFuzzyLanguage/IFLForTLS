@@ -58,9 +58,9 @@ init_setup:
 build_dependency:$(DEPENDENCY)
 
 $(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1_DIR).tar.gz
-	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz
-	cd $(OPENSSL_1_1_1_DIR) && ./config -d
-	cd $(OPENSSL_1_1_1_DIR) && make
+	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz > /dev/null
+	cd $(OPENSSL_1_1_1_DIR) && ./config -d > /dev/null
+	cd $(OPENSSL_1_1_1_DIR) && make > /dev/null
 
 $(OBJ_DIR)/$(COMMON_SRC_DIR)/%.o:$(COMMON_SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -o $@ -c $^
