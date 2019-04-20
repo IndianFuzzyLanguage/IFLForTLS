@@ -9,6 +9,8 @@ extern "C" {
 
 #include "iflfortls_log.h"
 
+#define MAX_BUF_SIZE 1024
+
 #define CLOSE_FD(fd) \
     do { \
         if (fd > -1) { \
