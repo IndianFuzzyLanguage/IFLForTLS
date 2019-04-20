@@ -10,6 +10,10 @@ jobs:
                 command: |
                     git submodule init
                     git submodule update
+                    cd dependency/IFL
+                    git checkout master
+                    git remote update
+                    git pull origin master
                     git log -n 1 --pretty=oneline
             - run: 
                 name: Build ILFForTLS
