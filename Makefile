@@ -66,6 +66,9 @@ init_setup:
 	@mkdir -p $(BIN_DIR)
 
 build_dependency:$(DEPENDENCY)
+	@echo "Dependencies"
+	@echo "1) IFL $(IFL_DIR)"
+	@echo "2) OpenSSL-1.1.1 $(OPENSSL_1_1_1_DIR)"
 
 $(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1_DIR).tar.gz
 	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz > /dev/null
