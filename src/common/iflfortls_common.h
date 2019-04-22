@@ -11,6 +11,8 @@ extern "C" {
 
 #define MAX_BUF_SIZE 1024
 
+#define RECV_TIMEOUT_MS 4000
+
 #define CLOSE_FD(fd) \
     do { \
         if (fd > -1) { \

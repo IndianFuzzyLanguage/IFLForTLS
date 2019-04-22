@@ -68,8 +68,14 @@ void print_sample_msg(uint8_t *sample_msg, uint32_t sample_msg_len)
 
 void wait_for_response(int fd)
 {
+    struct timeval tv;
     int ret;
+    tv.tv_sec = RECV_TIMEOUT_MS / 1000;
+    tv.tv_usec = (RECV_TIMEOUT_MS % 1000) * 1000;
     char buf[MAX_BUF_SIZE] = {0};
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv)) != 0) {
+        DBG("Set sock opt for recv to failed\n");
+    }
     if ((ret = recv(fd, buf, sizeof(buf) - 1, 0)) > 0) {
         DBG("Received resp of size %d\n", ret);
     } else {
