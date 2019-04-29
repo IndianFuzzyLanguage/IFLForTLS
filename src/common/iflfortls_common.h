@@ -11,7 +11,7 @@ extern "C" {
 
 #define MAX_BUF_SIZE 1024
 
-#define RECV_TIMEOUT_MS 4000
+#define RECV_TIMEOUT_MS 1500
 
 #define CLOSE_FD(fd) \
     do { \
