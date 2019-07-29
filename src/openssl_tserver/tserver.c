@@ -14,11 +14,24 @@
 #include "iflfortls_common.h"
 #include "iflfortls_log.h"
 
+#ifdef WITH_OPENSSL_1_0_2
+#define ECDHE_CURVE_NAME NID_X9_62_prime256v1
+#endif
+
 SSL_CTX *create_context()
 {
+    const SSL_METHOD *meth;
     SSL_CTX *ctx;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+#ifdef WITH_OPENSSL_1_1_1
+    meth = TLS_server_method();
+#elif defined WITH_OPENSSL_1_0_2
+    meth = TLSv1_2_server_method();
+#else
+    #error "WITH_OPENSSL_XXX not defined"
+#endif
+
+    ctx = SSL_CTX_new(meth);
     if (!ctx) {
         ERR("SSL ctx new failed\n");
         return NULL;
@@ -40,7 +53,9 @@ SSL_CTX *create_context()
 
     DBG("Loaded server key %s on context\n", SERVER_KEY_FILE);
 
+#ifdef WITH_OPENSSL_1_1_1
     SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
+#endif
     DBG("SSL context configurations completed\n");
 
     return ctx;
@@ -63,7 +78,8 @@ int read_cb(BIO *bio, char *buf, int buf_len)
     return -1;
 }
 
-int register_sock_cb(SSL *ssl, int fd)
+#ifdef WITH_OPENSSL_1_1_1
+BIO *bio_with_custom_cb_1_1_1()
 {
     const BIO_METHOD *bmeth_orig;
     BIO_METHOD *bmeth;
@@ -71,8 +87,9 @@ int register_sock_cb(SSL *ssl, int fd)
     bmeth_orig = BIO_s_socket();
     bmeth = BIO_meth_new(BIO_TYPE_SOCKET, "TCP_socket");
     if (!bmeth_orig || !bmeth) {
+        BIO_meth_free(bmeth);
         ERR("BIO meth creation failed\n");
-        return -1;
+        return NULL;
     }
     BIO_meth_set_write(bmeth, BIO_meth_get_write(bmeth_orig));
     BIO_meth_set_read(bmeth, read_cb);
@@ -82,6 +99,35 @@ int register_sock_cb(SSL *ssl, int fd)
     BIO_meth_set_destroy(bmeth, BIO_meth_get_destroy(bmeth_orig));
 
     bio = BIO_new(bmeth);
+    return bio;
+}
+#elif defined WITH_OPENSSL_1_0_2
+BIO *bio_with_custom_cb_1_0_2()
+{
+    const BIO_METHOD *bmeth_orig;
+    BIO_METHOD bmeth;
+    bmeth_orig = BIO_s_socket();
+    memcpy(&bmeth, bmeth_orig, sizeof(BIO_METHOD));
+    bmeth.bread = read_cb;
+    return BIO_new(&bmeth);
+}
+#else
+#error "WITH_OPENSSL_XXX not defined"
+#endif
+
+BIO *bio_with_custom_cb()
+{
+#ifdef WITH_OPENSSL_1_1_1
+    return bio_with_custom_cb_1_1_1();
+#elif defined WITH_OPENSSL_1_0_2
+    return bio_with_custom_cb_1_0_2();
+#endif
+}
+
+int register_sock_cb(SSL *ssl, int fd)
+{
+    BIO *bio;
+    bio = bio_with_custom_cb();
     if (!bio) {
         ERR("BIO new failed\n");
         goto err;
@@ -91,14 +137,26 @@ int register_sock_cb(SSL *ssl, int fd)
     DBG("BIO callback set successfully\n");
     return 0;
 err:
-    BIO_meth_free(bmeth);
     return -1;
+}
+
+int config_ecdhe_keypair(SSL *ssl)
+{
+    EC_KEY *ecdh;
+    ecdh = EC_KEY_new_by_curve_name(EC_CURVE_NAME);
+    if (!ecdh) {
+        printf("ECDH generation failed\n");
+        return -1;
+    }
+
+    SSL_set_tmp_ecdh(ssl, ecdh);
+    EC_KEY_free(ecdh);
+    return 0;
 }
 
 SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
 {
     SSL *ssl;
-    EC_KEY *ecdh;
     int fd;
 
     fd = do_tcp_accept(lfd);
@@ -119,15 +177,9 @@ SSL *create_ssl_object(SSL_CTX *ctx, int lfd)
         goto err;
     }
 
-    ecdh = EC_KEY_new_by_curve_name(EC_CURVE_NAME);
-    if (!ecdh) {
-        ERR("ECDH generation failed\n");
+    if (config_ecdhe_keypair(ssl) != 0) {
         goto err;
     }
-
-    SSL_set_tmp_ecdh(ssl, ecdh);
-    EC_KEY_free(ecdh);
-    ecdh = NULL;
 
     DBG("SSL object creation finished\n");
 
@@ -208,7 +260,13 @@ err:
 
 int main()
 {
-    DBG("\nOpenSSL version: %s, %s\n", OpenSSL_version(OPENSSL_VERSION), OpenSSL_version(OPENSSL_BUILT_ON));
+#ifdef WITH_OPENSSL_1_1_1
+    DBG("\nOpenSSL version: %s, %s\n", OpenSSL_version(OPENSSL_VERSION), \
+        OpenSSL_version(OPENSSL_BUILT_ON));
+#elif defined WITH_OPENSSL_1_0_2
+    DBG("\nOpenSSL version: %s, %s\n", SSLeay_version(SSLEAY_VERSION), \
+        SSLeay_version(SSLEAY_BUILT_ON));
+#endif
     if (tls12_server()) {
         DBG("TLS12 server connection failed\n");
         return -1;
