@@ -66,14 +66,14 @@ RM = rm
 ifeq ($(NOSAN),1)
 	SAN_CFLAGS=
 else
-	SAN_CFLAGS= -fsanitize=address -static-libasan
+	SAN_CFLAGS= -fsanitize=address
 endif
 
 SP_CFLAGS=-fstack-protector-all
 
 CFLAGS = -g -ggdb -O0 -Wall -Werror -I include -I $(COMMON_SRC_DIR) $(SAN_CFLAGS) $(SP_CFLAGS)
 
-OSSL_CONF_CFLAGS=-Wall -Werror $(SAN_CFLAGS) $(SP_CFLAGS)
+OSSL_CONF_CFLAGS=-Wall -Werror -Wno-error=cpp $(SAN_CFLAGS) $(SP_CFLAGS)
 
 IFL_T12CLIENT_CFLAGS = -I $(IFL_DIR)/include -I ./$(IFL_T12CLIENT_SRC_DIR)
 IFL_LFLAGS = -L $(IFL_DIR)/bin -lifl -lexpat $(SAN_CFLAGS)
@@ -113,7 +113,8 @@ build_dependency:$(DEPENDENCY)
 
 $(OPENSSL_1_1_1_LIBS): $(OPENSSL_1_1_1_DIR).tar.gz
 	cd $(DEPENDENCY_DIR) && tar -zxvf $(OPENSSL_1_1_1).tar.gz > /dev/null
-	export CC="$(CC) $(OSSL_CONF_CFLAGS)" && cd $(OPENSSL_1_1_1_DIR) && ./config -d > /dev/null
+	export CC="$(CC) $(OSSL_CONF_CFLAGS)" && cd $(OPENSSL_1_1_1_DIR) \
+		&& ./config -d > /dev/null
 	cd $(OPENSSL_1_1_1_DIR) && make > /dev/null
 
 $(OPENSSL_1_0_2_LIBS): $(OPENSSL_1_0_2_DIR).tar.gz
@@ -122,7 +123,8 @@ $(OPENSSL_1_0_2_LIBS): $(OPENSSL_1_0_2_DIR).tar.gz
 	cd $(OPENSSL_1_0_2_DIR) && make > /dev/null
 
 $(OPENSSL_MASTER_LIBS):
-	export CC="$(CC) $(OSSL_CONF_CFLAGS)" && cd $(OPENSSL_MASTER_DIR) && ./config -d > /dev/null
+	export CC="$(CC) $(OSSL_CONF_CFLAGS)" && cd $(OPENSSL_MASTER_DIR) \
+		&& ./config -d > /dev/null
 	cd $(OPENSSL_MASTER_DIR) && make > /dev/null
 
 $(IFL_LIBS):
