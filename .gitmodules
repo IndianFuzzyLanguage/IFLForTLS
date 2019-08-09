@@ -1,3 +1,6 @@
 [submodule "dependency/IFL"]
 	path = dependency/IFL
 	url = https://github.com/IndianFuzzyLanguage/IFL
+[submodule "dependency/openssl_master"]
+	path = dependency/openssl_master
+	url = https://github.com/openssl/openssl
